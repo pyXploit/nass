@@ -215,9 +215,15 @@ def count(
 
     >>> count(3, "كتاب", plural="كتب")
     '٣ كتب'
+    >>> count(2, "كتاب", dual="كتابان")
+    'كتابان'
     """
     if n < 0:
         raise ValueError("count() expects a non-negative number")
+
+    # Two of something is the dual form on its own: كتابان, never ٢ كتابان.
+    if n == 2 and dual is not None:
+        return dual
 
     rest = n % 100
     if n == 1:

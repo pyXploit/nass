@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.3.0] - 2026-11-13
 
+### Fixed
+- `count(2, noun, dual=...)` returns the dual on its own — كتابان, not ٢ كتابان
+- `speak` forms the dual for "2 + noun" instead of writing اثنان before it
+
 ### Added
 - `speak` — numbers, times, dates and percentages rewritten as spoken Arabic,
   with Levantine and Egyptian month names

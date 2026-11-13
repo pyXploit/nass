@@ -82,6 +82,26 @@ def test_speak_mixed_sentence() -> None:
     assert "12:30" not in out
 
 
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        ("2 قلم", "قلمان"),
+        ("2 كتاب", "كتابان"),
+        ("2 سيارة", "سيارتان"),
+        ("عندي 3 كتب و2 قلم", "عندي ثلاثة كتب وقلمان"),
+        ("12 قلم", "اثنا عشر قلم"),
+        ("2", "اثنان"),
+    ],
+)
+def test_speak_dual(text: str, expected: str) -> None:
+    assert nass.speak(text) == expected
+
+
+def test_speak_dual_does_not_double_dualise() -> None:
+    # A word that already carries a dual ending must not get another one.
+    assert "كتابانان" not in nass.speak("2 كتابان")
+
+
 def test_speak_empty() -> None:
     assert nass.speak("") == ""
 

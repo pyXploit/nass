@@ -81,6 +81,9 @@ _PERCENT = re.compile(r"(?<!\d)(\d+(?:\.\d+)?)\s*[%٪]")
 _DECIMAL = re.compile(r"(?<!\d)(\d+)\.(\d+)(?!\d)")
 _INTEGER = re.compile(r"\d+")
 
+# "2 قلم" is قلمان, not اثنان قلم.
+_DUAL = re.compile(r"(?<![\d.])2\s+([\u0621-\u064A]+)")
+
 _ORDINAL_DAYS = (
     "",
     "الأول",
@@ -149,6 +152,20 @@ def _time(hour: int, minute: int) -> str:
     return f"{spoken} و{_minutes(minute)}"
 
 
+def _dual_form(word: str) -> str | None:
+    """The dual of a singular noun, or None when it cannot be formed safely.
+
+    Regular nouns take ـان, and feminine nouns ending in ة take تان. Words that
+    already carry a dual or plural ending are left alone, because guessing there
+    does more harm than good.
+    """
+    if word.endswith("ة"):
+        return word[:-1] + "تان"
+    if word.endswith(("ان", "ين", "ات", "ون")):
+        return None
+    return word + "ان"
+
+
 def _decimal(whole: str, fraction: str) -> str:
     digits = " ".join(words(int(d)) for d in fraction)
     return f"{words(int(whole))} فاصلة {digits}"
@@ -193,5 +210,11 @@ def speak(text: str, *, months: str = "levantine") -> str:
     out = _DATE.sub(date_sub, out)
     out = _PERCENT.sub(percent_sub, out)
     out = _DECIMAL.sub(decimal_sub, out)
+
+    def dual_sub(match: re.Match[str]) -> str:
+        dual = _dual_form(match.group(1))
+        return dual if dual is not None else match.group(0)
+
+    out = _DUAL.sub(dual_sub, out)
     out = _INTEGER.sub(lambda m: words(int(m.group(0))), out)
     return out

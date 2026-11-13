@@ -127,6 +127,11 @@ nass.speak("3/4/2026", months="egyptian")   # 'الثالث من أبريل ...'
 
 Month names default to Levantine; `months="egyptian"` switches to يناير، فبراير.
 
+Two of something becomes the dual, because Arabic does not write the numeral
+with a dual noun: `2 قلم` → `قلمان`, `2 سيارة` → `سيارتان`. The rule is regular
+(ـان, or تان after ة). Broken plurals and irregular nouns need `count()` with
+explicit forms.
+
 ## matplotlib
 
 matplotlib 3.11 added HarfBuzz text layout, so Arabic renders correctly with no
