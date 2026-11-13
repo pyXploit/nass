@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>nass · plurals</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <h1>nass <span>plurals</span></h1>
+  <nav>
+    <button data-mode="gaps" class="active">Fill gaps <b id="n-gaps">0</b></button>
+    <button data-mode="verify">Verify <b id="n-verify">0</b></button>
+  </nav>
+</header>
+
+<main>
+  <section id="card">
+    <div id="meta"></div>
+    <div id="word" dir="rtl"></div>
+    <div id="gloss"></div>
+    <div id="current"></div>
+    <div class="fields">
+      <label>plural <input id="pl" dir="rtl" autocomplete="off" spellcheck="false" placeholder="—"></label>
+      <label>dual <input id="du" dir="rtl" autocomplete="off" spellcheck="false" placeholder="—"></label>
+    </div>
+    <div class="actions">
+      <button id="save" class="primary">Save <kbd>↵</kbd></button>
+      <button id="none">No plural</button>
+      <button id="skip">Skip <kbd>esc</kbd></button>
+    </div>
+    <div id="hint"></div>
+  </section>
+
+  <section id="done" hidden>
+    <p>Nothing left in this list.</p>
+    <button id="export" class="primary">Export JSON</button>
+  </section>
+</main>
+
+<footer>
+  <span id="progress"></span>
+  <span class="spacer"></span>
+  <button id="export2">Export JSON</button>
+  <button id="reset">Reset</button>
+</footer>
+
+<script src="data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
