@@ -17,6 +17,10 @@ import nass
         ("با", "\ufe91\ufe8e"),  # beh initial, alef final
         ("لا", "\ufefb"),  # lam-alef ligature, isolated
         ("بلا", "\ufe91\ufefc"),  # beh initial, lam-alef final
+        ("كتاب", "\ufedb\ufe98\ufe8e\ufe8f"),  # kaf, teh, alef, beh
+        ("كـــتاب", "\ufedb\u0640\u0640\u0640\ufe98\ufe8e\ufe8f"),  # tatweel joins
+        ("اب", "\ufe8d\ufe8f"),  # alef cannot join forward
+        ("السلام", "\ufe8d\ufedf\ufeb4\ufefc\ufee1"),
     ],
 )
 def test_shape(text: str, expected: str) -> None:
@@ -26,6 +30,16 @@ def test_shape(text: str, expected: str) -> None:
 def test_shape_ignores_diacritics_when_joining() -> None:
     # The fatha sits between the two behs and must not break the join.
     assert nass.shape("بَب") == "\ufe91\u064e\ufe90"
+
+
+def test_shape_tatweel_is_join_causing() -> None:
+    # Tatweel connects on both sides, so the letters around it keep their forms.
+    assert nass.shape("كـت") == "\ufedb\u0640\ufe96"
+
+
+def test_shape_right_joining_letter_takes_final_not_medial() -> None:
+    # Alef has no medial form; between two joining letters it must be final.
+    assert nass.shape("با") == "\ufe91\ufe8e"
 
 
 def test_shape_leaves_latin_alone() -> None:

@@ -17,6 +17,7 @@ import unicodedata
 __all__ = ["shape", "display"]
 
 _LAM = "\u0644"
+_TATWEEL = "\u0640"
 _ALEF_VARIANTS = frozenset("\u0622\u0623\u0625\u0627")
 
 _FORM_NAMES = ("isolated", "final", "initial", "medial")
@@ -54,7 +55,9 @@ _build_tables()
 
 
 def _joining(ch: str) -> str | None:
-    """Joining type of *ch*: D dual, R right-joining, U non-joining, None other."""
+    """Joining type of *ch*: D dual, R right-joining, C join-causing, U none."""
+    if ch == _TATWEEL:
+        return "C"
     forms = _FORMS.get(ch)
     if not forms:
         return None
@@ -95,7 +98,7 @@ def shape(text: str) -> str:
             ligature = _LIGATURES.get((ch, text[i + 1]))
             if ligature is not None:
                 prev = _neighbor(text, i, -1)
-                joins_prev = prev is not None and _joining(prev) == "D"
+                joins_prev = prev is not None and _joining(prev) in ("D", "C")
                 out.append(ligature["final"] if joins_prev else ligature["isolated"])
                 i += 2
                 continue
@@ -108,10 +111,10 @@ def shape(text: str) -> str:
 
         prev = _neighbor(text, i, -1)
         nxt = _neighbor(text, i, 1)
-        joins_prev = prev is not None and _joining(prev) == "D"
-        joins_next = nxt is not None and _joining(nxt) in ("D", "R")
+        joins_prev = prev is not None and _joining(prev) in ("D", "C")
+        joins_next = nxt is not None and _joining(nxt) in ("D", "R", "C")
 
-        if joins_prev and joins_next:
+        if joins_prev and joins_next and "medial" in forms:
             form = "medial"
         elif joins_prev:
             form = "final"
