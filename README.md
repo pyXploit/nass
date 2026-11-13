@@ -89,6 +89,11 @@ nass.display("بب")  # '\ufe90\ufe91'  shaped, then reordered
 `shape()` keeps logical order, for renderers that already handle bidi.
 `display()` also reorders, for the ones that do not.
 
+> **Check your renderer first.** Browsers, most modern toolkits, and PIL built
+> with Raqm already shape and reorder. Use `display()` only with renderers that
+> do neither — matplotlib, PIL with `layout_engine=BASIC`, most PDF libraries.
+> Applying it to text that is already shaped will double-process it.
+
 The presentation-form tables are derived from Unicode's own decomposition data
 at import time, so there is no hand-maintained mapping to drift out of date.
 Lam-alef ligatures are handled, and diacritics do not break a join.
