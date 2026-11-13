@@ -139,8 +139,13 @@ def _time(hour: int, minute: int) -> str:
         return f"{spoken} والربع"
     if minute == 30:
         return f"{spoken} والنصف"
-    if minute == 45:
-        return f"{spoken} إلا ربعاً"
+    # Past the half hour Arabic counts down to the next hour: 9:45 is
+    # العاشرة إلا ربعاً, not التاسعة إلا ربعاً.
+    if minute > 30:
+        following = _HOURS[(hour + 1) % 12 or 12]
+        if minute == 45:
+            return f"{following} إلا ربعاً"
+        return f"{following} إلا {_minutes(60 - minute)}"
     return f"{spoken} و{_minutes(minute)}"
 
 
