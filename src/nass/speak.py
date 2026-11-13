@@ -178,6 +178,8 @@ def speak(text: str, *, months: str = "levantine") -> str:
         return f"{_ORDINAL_DAYS[day]} من {month_names[month - 1]} عام {words(year)}"
 
     def percent_sub(match: re.Match[str]) -> str:
+        # بالمئة is a prepositional phrase, not a counted noun in construct, so
+        # the numeral keeps its base form: خمسة بالمئة, not خمس بالمئة.
         value = match.group(1)
         if "." in value:
             whole, fraction = value.split(".", 1)
