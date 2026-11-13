@@ -7,8 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Planned
-- `speak` — normalisation for speech synthesis
-- `plot` — one-line matplotlib integration
+- More month-name sets for `speak`
+
+## [0.3.0] - 2026-11-13
+
+### Added
+- `speak` — numbers, times, dates and percentages rewritten as spoken Arabic,
+  with Levantine and Egyptian month names
+- `plot.enable()` — patches matplotlib versions before 3.11, and deliberately
+  does nothing on 3.11+, which shapes Arabic itself via HarfBuzz
 
 ## [0.2.0] - 2026-11-13
 

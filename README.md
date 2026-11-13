@@ -36,6 +36,7 @@ nass.to_arabic_digits("2026") # '٢٠٢٦'
 nass.shape("بب")              # '\ufe91\ufe90'  initial + final
 nass.display("بب")            # '\ufe90\ufe91'  shaped, then reordered
 nass.wrap(text, 320, measure=font.getlength)   # list[str]
+nass.speak("الساعة 12:30")    # 'الساعة الثانية عشرة والنصف'
 ```
 
 ## Why the plural categories matter
@@ -77,9 +78,11 @@ nass.normalize("مُحَمَّد", strip_diacritics=False)  # 'مُحَمَّد'
 
 ## Shaping
 
+![raw text above, nass.display() below](docs/shaping.png)
+
 Arabic letters change shape depending on their neighbours. A renderer that
-draws one glyph per code point — matplotlib, PIL, most PDF libraries — shows
-them disconnected and in the wrong order.
+draws one glyph per code point — PIL with `layout_engine=BASIC`, most PDF
+libraries — shows them disconnected and in the wrong order.
 
 ```python
 nass.shape("بب")    # '\ufe91\ufe90'  initial + final
@@ -89,10 +92,10 @@ nass.display("بب")  # '\ufe90\ufe91'  shaped, then reordered
 `shape()` keeps logical order, for renderers that already handle bidi.
 `display()` also reorders, for the ones that do not.
 
-> **Check your renderer first.** Browsers, most modern toolkits, and PIL built
-> with Raqm already shape and reorder. Use `display()` only with renderers that
-> do neither — matplotlib, PIL with `layout_engine=BASIC`, most PDF libraries.
-> Applying it to text that is already shaped will double-process it.
+> **Check your renderer first.** Browsers, most modern toolkits, PIL built with
+> Raqm, and matplotlib 3.11+ already shape and reorder. Use `display()` only
+> with renderers that do neither. Applying it to text that is already shaped
+> will double-process it.
 
 The presentation-form tables are derived from Unicode's own decomposition data
 at import time, so there is no hand-maintained mapping to drift out of date.
@@ -109,6 +112,33 @@ It defaults to `len`, which is only right for monospaced output.
 
 Arabic punctuation is kept with the word it follows, so a line never begins
 with `،` or `؛`, and an opening bracket never ends one.
+
+## Speech
+
+Screen readers and TTS engines read Arabic digits, times and dates badly.
+`speak()` rewrites them into the words a person would say.
+
+```python
+nass.speak("الساعة 12:30")   # 'الساعة الثانية عشرة والنصف'
+nass.speak("50%")            # 'خمسون بالمئة'
+nass.speak("3/4/2026")       # 'الثالث من نيسان عام ألف وستة وعشرون'
+nass.speak("3/4/2026", months="egyptian")   # 'الثالث من أبريل ...'
+```
+
+Month names default to Levantine; `months="egyptian"` switches to يناير، فبراير.
+
+## matplotlib
+
+matplotlib 3.11 added HarfBuzz text layout, so Arabic renders correctly with no
+help. On older versions:
+
+```python
+import nass
+nass.plot.enable()   # False on 3.11+, True when it actually patched
+```
+
+`enable()` checks the installed version and does nothing when patching would
+break things.
 
 ## API
 
@@ -127,13 +157,13 @@ with `،` or `؛`, and an opening bracket never ends one.
 | `shape(text)` | Presentation forms, logical order |
 | `display(text)` | Shaped and reordered for a left-to-right renderer |
 | `wrap(text, width, measure=...)` | Break into lines that respect Arabic punctuation |
+| `speak(text, months=...)` | Numbers, times, dates and percentages as spoken Arabic |
+| `plot.enable()` | Patch matplotlib < 3.11; no-op on newer |
 
 ## Status
 
-`0.2.0` ships normalisation, numbers, shaping and wrapping. Planned, in order:
-
-- `speak` — normalisation for speech synthesis
-- `plot` — one-line matplotlib integration
+`0.3.0` ships normalisation, numbers, shaping, wrapping and speech. The API is
+stable; further work is bug fixes and more month-name sets.
 
 ## Development
 

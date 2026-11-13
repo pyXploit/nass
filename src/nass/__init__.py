@@ -6,6 +6,9 @@ configuration, no surprises.
 
 from __future__ import annotations
 
+import importlib
+from typing import Any
+
 from nass.normalize import collapse_whitespace, is_arabic, normalize, remove_diacritics
 from nass.numbers import (
     count,
@@ -16,9 +19,10 @@ from nass.numbers import (
     words,
 )
 from nass.shape import display, shape
+from nass.speak import speak
 from nass.wrap import wrap
 
-__version__ = "0.2.0"
+__version__ = "0.3.0"
 
 __all__ = [
     "__version__",
@@ -39,4 +43,14 @@ __all__ = [
     "display",
     # wrap
     "wrap",
+    # speak
+    "speak",
+    # plot (lazy: importing it must not require matplotlib)
+    "plot",
 ]
+
+
+def __getattr__(name: str) -> Any:
+    if name == "plot":
+        return importlib.import_module("nass.plot")
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
