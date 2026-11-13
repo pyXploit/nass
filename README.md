@@ -2,7 +2,6 @@
 
 **Arabic text, handled correctly, everywhere Python touches it.**
 
-[![CI](https://github.com/pyXploit/nass/actions/workflows/ci.yml/badge.svg)](https://github.com/pyXploit/nass/actions/workflows/ci.yml)
 [![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-blue)](https://pypi.org/project/nass/)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
