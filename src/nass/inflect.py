@@ -38,6 +38,29 @@ _CASE = frozenset(chr(code) for code in range(0x064B, 0x0651))
 #: (plural forms, dual forms, gloss) for one lexical entry.
 _Row = tuple[tuple[str, ...], tuple[str, ...], str]
 
+#: Words that begin with the letters ال but do not carry the definite article.
+#: Stripping the prefix from these would look up a different lexeme.
+_ARTICLE_EXCEPTIONS = frozenset(
+    {
+        "الله",
+        "اللهم",
+        "الآن",
+        "الأولى",
+        "الأول",
+        "الآخر",
+        "الأخرى",
+        "الآخرين",
+        "الذي",
+        "التي",
+        "الذين",
+        "اللذان",
+        "اللتان",
+        "اللاتي",
+        "اللواتي",
+        "اللائي",
+    }
+)
+
 
 def _bare(text: str) -> str:
     """Strip every diacritic and tatweel."""
@@ -67,9 +90,21 @@ def _table() -> dict[str, list[_Row]]:
     return table
 
 
+def _rows(word: str) -> list[_Row]:
+    """Look a word up, falling back to the bare stem of a definite form."""
+    table = _table()
+    key = _bare(word)
+    rows = table.get(key)
+    if rows is not None:
+        return rows
+    if key.startswith("ال") and key not in _ARTICLE_EXCEPTIONS:
+        return table.get(key[2:], [])
+    return []
+
+
 def _forms(word: str, slot: int, vocalized: bool) -> list[str]:
     """Collect one slot across every homograph row, ranked, without duplicates."""
-    rows = _table().get(_bare(word))
+    rows = _rows(word)
     if not rows:
         return []
     out: list[str] = []
@@ -134,7 +169,7 @@ def glosses(word: str) -> list[str]:
     >>> glosses("كتاب")
     ['book', "a traditional school for teaching Qur'an"]
     """
-    rows = _table().get(_bare(word)) or []
+    rows = _rows(word)
     return [row[2] for row in rows if row[2]]
 
 
@@ -143,7 +178,9 @@ def known(word: str) -> bool:
 
     >>> known("كتاب")
     True
+    >>> known("الكتاب")
+    True
     >>> known("زززز")
     False
     """
-    return _bare(word) in _table()
+    return bool(_rows(word))

@@ -117,9 +117,42 @@ def collect(stream: TextIO) -> tuple[list[dict[str, Any]], Counter[str]]:
     return rows, stats
 
 
+def apply_overrides(rows: list[dict[str, Any]], path: Path) -> int:
+    """Apply hand-entered rows, replacing only the primary row of a lemma.
+
+    Homograph rows are kept: confirming the plural of كتاب must not delete the
+    second entry, which carries a different plural.
+    """
+    if not path.exists():
+        return 0
+    overrides = [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line]
+    if not overrides:
+        return 0
+    primary: dict[str, int] = {}
+    for position, row in enumerate(rows):
+        primary.setdefault(bare(row["w"]), position)
+    for override in overrides:
+        position = primary.get(bare(override["w"]))
+        if position is None:
+            primary[bare(override["w"])] = len(rows)
+            rows.append(override)
+        else:
+            merged = dict(rows[position])
+            merged.update(override)
+            merged["g"] = override.get("g") or rows[position].get("g", "")
+            merged["n"] = max(int(override.get("n") or 1), int(rows[position].get("n") or 1))
+            rows[position] = merged
+    return len(overrides)
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--input", required=True, help="JSONL path, or - for stdin")
+    parser.add_argument(
+        "--overrides",
+        default=str(OUT.parent / "overrides.jsonl"),
+        help="hand-entered rows that win over the extracted ones",
+    )
     args = parser.parse_args()
 
     if args.input == "-":
@@ -128,6 +161,8 @@ def main() -> int:
         with open(args.input, encoding="utf-8") as handle:
             rows, stats = collect(handle)
 
+    rows.sort(key=lambda r: (bare(r["w"]), -r["n"], r["d"]))
+    applied = apply_overrides(rows, Path(args.overrides))
     rows.sort(key=lambda r: (bare(r["w"]), -r["n"], r["d"]))
 
     payload = "".join(json.dumps(r, ensure_ascii=False) + "\n" for r in rows).encode()
@@ -140,6 +175,7 @@ def main() -> int:
     print(f"candidates        {stats['candidates']:>8,}")
     print(f"dropped form-of   {stats['dropped_form_of']:>8,}")
     print(f"rows kept         {len(rows):>8,}")
+    print(f"overrides applied {applied:>8,}")
     print(f"unique lemmas     {len(lemmas):>8,}")
     print(f"with plural       {sum(1 for r in rows if r['pl']):>8,}")
     print(f"with dual         {sum(1 for r in rows if r['du']):>8,}")

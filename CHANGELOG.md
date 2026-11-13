@@ -19,6 +19,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `glosses` — short English glosses, so homographs can be told apart
 - `known` — whether a word has a lexicon entry
 - `vocalized=True` on every inflection function, returning the diacritized form
+- Lookup strips the definite article, so `plural("الكتاب")` works; a short
+  blocklist keeps lexicalised words like `الأولى` and `اللهم` from being
+  mistaken for article + stem
+- `tools/gaps.py` ranks the lemmas that have no plural by how often they are used
+- `tools/make_entry_data.py` and `tools/merge_overrides.py` back a small
+  authoring page for filling those gaps by hand
 
 ### Notes
 - The lexicon is CC BY-SA 3.0 and ships as a separate data file; the code

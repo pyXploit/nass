@@ -60,6 +60,21 @@ def test_lookup_ignores_diacritics() -> None:
     assert known("كِتَاب") is True
 
 
+def test_lookup_strips_the_definite_article() -> None:
+    assert plural("الكتاب") == "كتب"
+    assert plural("السيارة") == "سيارات"
+    assert dual("البيت") == "بيتان"
+    assert known("الكتاب") is True
+
+
+def test_article_exceptions_are_not_stripped() -> None:
+    # These begin with ال but do not carry the article; stripping would
+    # look up a different lexeme (الأولى -> أولى, اللهم -> لهم).
+    assert plural("الأولى") is None
+    assert plural("اللهم") is None
+    assert plural("الآن") is None
+
+
 def test_homographs_are_ranked_not_merged() -> None:
     # كتاب is both "book" and "Qur'an school"; the common sense comes first.
     assert plural("كتاب") == "كتب"
