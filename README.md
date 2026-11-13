@@ -17,8 +17,10 @@ turns your text into disconnected shapes in the wrong order.
 and returns Arabic text — no objects, no configuration, no surprises.
 
 ```bash
-pip install nass
+pip install git+https://github.com/pyXploit/nass
 ```
+
+Not on PyPI yet — that lands with the `0.1.0` release.
 
 ## What it does
 

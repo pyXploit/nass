@@ -14,8 +14,10 @@
 ## التثبيت
 
 ```bash
-pip install nass
+pip install git+https://github.com/pyXploit/nass
 ```
+
+لم يُنشر على PyPI بعد — سيحدث ذلك مع إصدار `0.1.0`.
 
 ## أمثلة
 
