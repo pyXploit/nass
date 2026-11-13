@@ -15,8 +15,10 @@ from nass.numbers import (
     to_western_digits,
     words,
 )
+from nass.shape import display, shape
+from nass.wrap import wrap
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 
 __all__ = [
     "__version__",
@@ -32,4 +34,9 @@ __all__ = [
     "plural_category",
     "to_arabic_digits",
     "to_western_digits",
+    # shape
+    "shape",
+    "display",
+    # wrap
+    "wrap",
 ]

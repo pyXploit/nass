@@ -7,10 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Planned
-- `shape` — presentation forms and bidi reordering for renderers that do not shape
-- `wrap` — line breaking with real font metrics
 - `speak` — normalisation for speech synthesis
 - `plot` — one-line matplotlib integration
+
+## [0.2.0] - 2026-11-13
+
+### Added
+- `shape` — presentation forms chosen from each letter's joining context,
+  with lam-alef ligatures and diacritic-safe joins
+- `display` — shaping plus bidi reordering for renderers that do neither
+- `wrap` — line breaking with a pluggable measurer, keeping Arabic
+  punctuation attached to the word it follows
 
 ## [0.1.0] - 2026-11-13
 

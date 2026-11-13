@@ -2,6 +2,7 @@
 
 **Arabic text, handled correctly, everywhere Python touches it.**
 
+[![CI](https://github.com/pyXploit/nass/actions/workflows/ci.yml/badge.svg)](https://github.com/pyXploit/nass/actions/workflows/ci.yml)
 [![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-blue)](https://pypi.org/project/nass/)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
@@ -19,7 +20,7 @@ and returns Arabic text — no objects, no configuration, no surprises.
 pip install git+https://github.com/pyXploit/nass
 ```
 
-Not on PyPI yet — that lands with the `0.1.0` release.
+Not on PyPI yet — that lands with the `0.2.0` release.
 
 ## What it does
 
@@ -32,6 +33,9 @@ nass.count(3, "كتاب", plural="كتب")   # '٣ كتب'
 nass.ordinal(21)              # 'الحادي والعشرون'
 nass.plural_category(11)      # 'many'
 nass.to_arabic_digits("2026") # '٢٠٢٦'
+nass.shape("بب")              # '\ufe91\ufe90'  initial + final
+nass.display("بب")            # '\ufe90\ufe91'  shaped, then reordered
+nass.wrap(text, 320, measure=font.getlength)   # list[str]
 ```
 
 ## Why the plural categories matter
@@ -71,6 +75,36 @@ Every rule can be switched off when the original orthography has to survive:
 nass.normalize("مُحَمَّد", strip_diacritics=False)  # 'مُحَمَّد'
 ```
 
+## Shaping
+
+Arabic letters change shape depending on their neighbours. A renderer that
+draws one glyph per code point — matplotlib, PIL, most PDF libraries — shows
+them disconnected and in the wrong order.
+
+```python
+nass.shape("بب")    # '\ufe91\ufe90'  initial + final
+nass.display("بب")  # '\ufe90\ufe91'  shaped, then reordered
+```
+
+`shape()` keeps logical order, for renderers that already handle bidi.
+`display()` also reorders, for the ones that do not.
+
+The presentation-form tables are derived from Unicode's own decomposition data
+at import time, so there is no hand-maintained mapping to drift out of date.
+Lam-alef ligatures are handled, and diacritics do not break a join.
+
+## Wrapping
+
+```python
+nass.wrap(text, 320, measure=font.getlength)
+```
+
+`measure` maps a string to its rendered width — pass your renderer's own.
+It defaults to `len`, which is only right for monospaced output.
+
+Arabic punctuation is kept with the word it follows, so a line never begins
+with `،` or `؛`, and an opening bracket never ends one.
+
 ## API
 
 | Function | Purpose |
@@ -85,13 +119,14 @@ nass.normalize("مُحَمَّد", strip_diacritics=False)  # 'مُحَمَّد'
 | `plural_category(n)` | CLDR category: zero, one, two, few, many, other |
 | `to_arabic_digits(text)` | `2026` → `٢٠٢٦` |
 | `to_western_digits(text)` | `٢٠٢٦` → `2026` |
+| `shape(text)` | Presentation forms, logical order |
+| `display(text)` | Shaped and reordered for a left-to-right renderer |
+| `wrap(text, width, measure=...)` | Break into lines that respect Arabic punctuation |
 
 ## Status
 
-`0.1.0` ships normalisation and numbers. Planned, in order:
+`0.2.0` ships normalisation, numbers, shaping and wrapping. Planned, in order:
 
-- `shape` — presentation forms and bidi reordering, for renderers that do not shape
-- `wrap` — line breaking with real font metrics
 - `speak` — normalisation for speech synthesis
 - `plot` — one-line matplotlib integration
 
