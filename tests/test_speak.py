@@ -49,11 +49,11 @@ def test_speak_decimal(text: str, expected: str) -> None:
 
 
 def test_speak_date_levantine() -> None:
-    assert nass.speak("3/4/2026") == "الثالث من نيسان عام ألف وستة وعشرون"
+    assert nass.speak("3/4/2026") == "الثالث من نيسان عام ألفان وستة وعشرون"
 
 
 def test_speak_date_egyptian() -> None:
-    assert nass.speak("3/4/2026", months="egyptian") == "الثالث من أبريل عام ألف وستة وعشرون"
+    assert nass.speak("3/4/2026", months="egyptian") == "الثالث من أبريل عام ألفان وستة وعشرون"
 
 
 def test_speak_rejects_unknown_months() -> None:
@@ -62,7 +62,7 @@ def test_speak_rejects_unknown_months() -> None:
 
 
 def test_speak_integer() -> None:
-    assert nass.speak("2026") == "ألف وستة وعشرون"
+    assert nass.speak("2026") == "ألفان وستة وعشرون"
 
 
 def test_speak_leaves_words_alone() -> None:

@@ -121,7 +121,7 @@ Screen readers and TTS engines read Arabic digits, times and dates badly.
 ```python
 nass.speak("الساعة 12:30")   # 'الساعة الثانية عشرة والنصف'
 nass.speak("50%")            # 'خمسون بالمئة'
-nass.speak("3/4/2026")       # 'الثالث من نيسان عام ألف وستة وعشرون'
+nass.speak("3/4/2026")       # 'الثالث من نيسان عام ألفان وستة وعشرون'
 nass.speak("3/4/2026", months="egyptian")   # 'الثالث من أبريل ...'
 ```
 

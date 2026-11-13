@@ -157,14 +157,12 @@ def _scale_words(
     dual: str,
     plural: str,
     accusative: str,
-    *,
-    has_remainder: bool,
 ) -> str:
     """Render the multiplier of a scale word, e.g. 3 in 3000."""
     if k == 1:
         return singular
     if k == 2:
-        return dual if not has_remainder else singular
+        return dual
     if 3 <= k <= 10:
         unit = _ONES[k] if k < 10 else _TEENS[0]
         return f"{unit} {plural}"
@@ -193,11 +191,7 @@ def words(n: int) -> str:
     for value, singular, dual, plural, accusative in _SCALES:
         k, remainder = divmod(remainder, value)
         if k:
-            groups.append(
-                _scale_words(
-                    k, singular, dual, plural, accusative, has_remainder=bool(remainder)
-                )
-            )
+            groups.append(_scale_words(k, singular, dual, plural, accusative))
     if remainder:
         groups.append(_below_thousand(remainder))
     return " و".join(groups)
