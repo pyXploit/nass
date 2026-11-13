@@ -1,0 +1,83 @@
+"""Tests for the sourced plural and dual lexicon."""
+
+from __future__ import annotations
+
+import pytest
+
+from nass import dual, duals, glosses, known, plural, plurals
+
+
+def test_plural_basic() -> None:
+    assert plural("كتاب") == "كتب"
+    assert plural("بيت") == "بيوت"
+    assert plural("قلم") == "أقلام"
+
+
+def test_plural_broken_and_sound() -> None:
+    assert "مدارس" in plurals("مدرسة")
+    assert "مدرسات" in plurals("مدرسة")
+    assert "طالبون" in plurals("طالب")
+
+
+def test_plural_irregular() -> None:
+    assert plural("امرأة") == "نساء"
+    assert plural("يوم") == "أيام"
+
+
+def test_plural_loanword_is_sourced_not_generated() -> None:
+    # The lexicon knows these; nothing is derived by rule.
+    assert plural("كمبيوتر") == "كمبيوترات"
+    assert plural("بنك") == "بنوك"
+
+
+def test_dual() -> None:
+    assert dual("كتاب") == "كتابان"
+    assert dual("سيارة") == "سيارتان"
+    assert dual("مدرسة") == "مدرستان"
+
+
+def test_dual_variants() -> None:
+    assert duals("ماء") == ["ماءان", "ماوان", "مايان"]
+
+
+def test_vocalized() -> None:
+    assert plural("كتاب", vocalized=True) == "كُتُب"
+    assert dual("كتاب", vocalized=True) == "كِتَابَان"
+    assert plural("مدرسة", vocalized=True) == "مَدْرَسَات"
+
+
+def test_unknown_returns_none_not_a_guess() -> None:
+    assert plural("زززز") is None
+    assert dual("زززز") is None
+    assert plurals("زززز") == []
+    assert duals("زززز") == []
+    assert known("زززز") is False
+
+
+def test_lookup_ignores_diacritics() -> None:
+    assert plural("كِتَاب") == "كتب"
+    assert plural("كِتَابٌ") == "كتب"
+    assert known("كِتَاب") is True
+
+
+def test_homographs_are_ranked_not_merged() -> None:
+    # كتاب is both "book" and "Qur'an school"; the common sense comes first.
+    assert plural("كتاب") == "كتب"
+    assert plurals("كتاب") == ["كتب", "كتاتيب"]
+    assert glosses("كتاب") == ["book", "a traditional school for teaching Qur'an"]
+
+
+def test_glosses_absent_for_single_entry() -> None:
+    assert glosses("زززز") == []
+
+
+def test_known() -> None:
+    assert known("كتاب") is True
+    assert known("مدرسة") is True
+
+
+@pytest.mark.parametrize("word", ["كتاب", "مدرسة", "سيارة", "بيت", "رجل", "ماء"])
+def test_every_form_is_arabic(word: str) -> None:
+    for form in plurals(word) + duals(word):
+        assert form
+        assert all("\u0600" <= ch <= "\u06ff" for ch in form)

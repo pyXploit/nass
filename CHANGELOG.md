@@ -8,6 +8,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Planned
 - More month-name sets for `speak`
+- A tool for filling gaps in the plural lexicon
+
+## [0.4.0] - 2026-11-13
+
+### Added
+- `plural`, `plurals`, `dual`, `duals` — sourced from a lexicon built out of
+  English Wiktionary (9,223 lemmas, 10,860 entries). Nothing is generated: a
+  word that is not in the lexicon returns `None` instead of a guess
+- `glosses` — short English glosses, so homographs can be told apart
+- `known` — whether a word has a lexicon entry
+- `vocalized=True` on every inflection function, returning the diacritized form
+
+### Notes
+- The lexicon is CC BY-SA 3.0 and ships as a separate data file; the code
+  remains MIT. Rebuild it with `tools/build_data.py`
 
 ## [0.3.0] - 2026-11-13
 

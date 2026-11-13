@@ -1,0 +1,22 @@
+The file nouns.jsonl.gz in this directory is derived data, not source code.
+It is licensed separately from the rest of nass.
+
+Source
+    English Wiktionary, https://en.wiktionary.org
+    Extracted with Wiktextract, https://kaikki.org/dictionary/Arabic/
+    Upstream file: kaikki.org-dictionary-Arabic.jsonl, built 2026-10-30
+    sha256 19eee17681c23b3da039878ee7c970d93b75a339989a17a842f14aa7f44ea236
+
+License
+    Creative Commons Attribution-ShareAlike 3.0 Unported (CC BY-SA 3.0)
+    https://creativecommons.org/licenses/by-sa/3.0/
+
+Modifications
+    Only the plural and dual cells of the declension tables for nouns,
+    adjectives and proper names were kept. Entries whose every sense is an
+    inflected form (tagged form-of) were dropped. Each row was reduced to the
+    lemma, its plural and dual forms, a sense count and a short gloss.
+    The result is 10,860 rows covering 9,223 lemmas.
+
+Rebuild with tools/build_data.py. The script is MIT like the rest of nass;
+this data file is not.

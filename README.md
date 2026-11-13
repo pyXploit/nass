@@ -20,7 +20,7 @@ and returns Arabic text — no objects, no configuration, no surprises.
 pip install git+https://github.com/pyXploit/nass
 ```
 
-Not on PyPI yet — that lands with the `0.2.0` release.
+Not on PyPI yet — that lands with the `0.4.0` release.
 
 ## What it does
 
@@ -37,7 +37,36 @@ nass.shape("بب")              # '\ufe91\ufe90'  initial + final
 nass.display("بب")            # '\ufe90\ufe91'  shaped, then reordered
 nass.wrap(text, 320, measure=font.getlength)   # list[str]
 nass.speak("الساعة 12:30")    # 'الساعة الثانية عشرة والنصف'
+nass.plural("كتاب")           # 'كتب'
+nass.dual("سيارة")            # 'سيارتان'
 ```
+
+## Plurals and duals
+
+Arabic plurals are lexical, not derivable: مدرسة → مدارس but سيارة → سيارات.
+`nass` does not guess. Every form comes from a lexicon built out of English
+Wiktionary — 9,223 lemmas, 10,860 entries — and a word that is not in it
+returns `None`.
+
+```python
+nass.plural("كتاب")                    # 'كتب'
+nass.plurals("مدرسة")                  # ['مدرسات', 'مدارس']
+nass.dual("سيارة")                     # 'سيارتان'
+nass.duals("ماء")                      # ['ماءان', 'ماوان', 'مايان']
+nass.plural("كتاب", vocalized=True)    # 'كُتُب'
+nass.plural("زززز")                    # None — not in the lexicon, so no guess
+```
+
+Homographs are ranked, not merged. `كتاب` is both "book" and "Qur'an school",
+and the two have different plurals:
+
+```python
+nass.plurals("كتاب")   # ['كتب', 'كتاتيب']
+nass.glosses("كتاب")   # ['book', "a traditional school for teaching Qur'an"]
+```
+
+The lexicon is CC BY-SA 3.0 and ships as a separate data file; the code stays
+MIT. See `src/nass/data/LICENSE`.
 
 ## Why the plural categories matter
 

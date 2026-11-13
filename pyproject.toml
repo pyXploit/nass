@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "nass"
-version = "0.3.0"
+version = "0.4.0"
 description = "Arabic text, handled correctly, everywhere Python touches it."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -38,6 +38,10 @@ Changelog = "https://github.com/pyXploit/nass/blob/main/CHANGELOG.md"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/nass"]
+
+[tool.hatch.build.targets.wheel.force-include]
+"src/nass/data/nouns.jsonl.gz" = "nass/data/nouns.jsonl.gz"
+"src/nass/data/LICENSE" = "nass/data/LICENSE"
 
 [tool.pytest.ini_options]
 testpaths = ["tests", "src/nass"]

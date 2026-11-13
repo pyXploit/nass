@@ -9,6 +9,7 @@ from __future__ import annotations
 import importlib
 from typing import Any
 
+from nass.inflect import dual, duals, glosses, known, plural, plurals
 from nass.normalize import collapse_whitespace, is_arabic, normalize, remove_diacritics
 from nass.numbers import (
     count,
@@ -22,7 +23,7 @@ from nass.shape import display, shape
 from nass.speak import speak
 from nass.wrap import wrap
 
-__version__ = "0.3.0"
+__version__ = "0.4.0"
 
 __all__ = [
     "__version__",
@@ -38,6 +39,13 @@ __all__ = [
     "plural_category",
     "to_arabic_digits",
     "to_western_digits",
+    # inflect
+    "plural",
+    "plurals",
+    "dual",
+    "duals",
+    "glosses",
+    "known",
     # shape
     "shape",
     "display",
