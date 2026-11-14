@@ -53,13 +53,23 @@ def test_vocalized_drops_the_case_ending_before_a_shadda() -> None:
 
 
 def test_researched_gap_fills() -> None:
-    # These lemmas had no plural in the Wiktionary extract; the forms come from
-    # the Arabic dictionaries recorded in tools/gap_fills.json.
-    assert plural("موزة") == "موزات"
-    assert plural("نحلة") == "نحلات"
+    # These lemmas had no plural in the Wiktionary extract; the forms are quoted
+    # from the Arabic dictionaries recorded in tools/gap_fills.json.
+    assert plural("موزة") == "موز"
+    assert plural("نحلة") == "نحل"
     assert plural("قش") == "قشوش"
     assert plural("أراك") == "أرك"
     assert plural("جبنة") == "أجبان"
+    assert plural("بطة") == "بطط"
+
+
+def test_no_rule_made_plurals() -> None:
+    # No dictionary attests a plural for these two, so nothing is invented:
+    # they stay unknown rather than get a sound feminine plural by rule.
+    assert known("زجاجة") is True
+    assert plural("زجاجة") is None
+    assert known("ماسة") is True
+    assert plural("ماسة") is None
 
 
 def test_collectives_are_known_but_have_no_plural() -> None:

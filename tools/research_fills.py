@@ -10,8 +10,8 @@ Usage::
     python tools/research_fills.py
     python tools/build_data.py --input kaikki-ar.jsonl
 
-Rows already in ``overrides.jsonl`` (for example the ones exported by the entry
-page) are kept; a researched answer replaces the row for the same word.
+Rows already in ``overrides.jsonl`` are replaced: this file is the record of
+what the dictionaries say, so it is written whole rather than merged.
 """
 
 from __future__ import annotations
@@ -47,19 +47,10 @@ def main() -> int:
 
     fills = json.loads(Path(args.fills).read_text(encoding="utf-8"))
     fills.pop("_comment", None)
+    fills.pop("_open", None)
 
     out = Path(args.out)
-    existing: dict[str, dict[str, Any]] = {}
-    if out.exists():
-        for line in out.read_text(encoding="utf-8").splitlines():
-            if line:
-                old = json.loads(line)
-                existing[old["w"]] = old
-
-    for word, entry in fills.items():
-        existing[word] = row(word, entry)
-
-    rows = [existing[word] for word in sorted(existing)]
+    rows = [row(word, fills[word]) for word in sorted(fills)]
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(
         "".join(json.dumps(r, ensure_ascii=False) + "\n" for r in rows), encoding="utf-8"
