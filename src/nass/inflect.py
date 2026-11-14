@@ -1,8 +1,10 @@
 """Arabic plurals and duals, looked up from a sourced lexicon.
 
-Nothing here is generated. Every form comes from the Wiktextract extract of
-English Wiktionary (CC BY-SA 3.0, see ``nass/data/LICENSE``). A word that is
-not in the lexicon returns ``None`` rather than a guess.
+Nothing here is generated. Every form comes from one of two dictionaries: the
+Wiktextract extract of English Wiktionary (CC BY-SA 3.0) and the arramooz
+morphological dictionary (GPL v2), which fills the gaps the first one leaves.
+See ``nass/data/LICENSE``. A word that is not in the lexicon returns ``None``
+rather than a guess.
 
 >>> plural("كتاب")
 'كتب'
@@ -83,19 +85,25 @@ def _vocalized(text: str) -> str:
 
 @lru_cache(maxsize=1)
 def _table() -> dict[str, list[_Row]]:
-    """Load the lexicon once, keyed by the undiacritized lemma."""
-    raw = resources.files("nass").joinpath("data/nouns.jsonl.gz").read_bytes()
+    """Load the lexicon once, keyed by the undiacritized lemma.
+
+    Two data files are read: the Wiktionary extract and the arramooz rows that
+    fill the gaps it leaves. They are separate files because they carry
+    different licences; see ``data/LICENSE``.
+    """
     table: dict[str, list[_Row]] = {}
-    for line in gzip.decompress(raw).decode("utf-8").splitlines():
-        if not line:
-            continue
-        entry: dict[str, Any] = json.loads(line)
-        row: _Row = (
-            tuple(form["f"] for form in entry["pl"]),
-            tuple(form["f"] for form in entry["du"]),
-            str(entry.get("g") or ""),
-        )
-        table.setdefault(_bare(entry["w"]), []).append(row)
+    for name in ("data/nouns.jsonl.gz", "data/arramooz.jsonl.gz"):
+        raw = resources.files("nass").joinpath(name).read_bytes()
+        for line in gzip.decompress(raw).decode("utf-8").splitlines():
+            if not line:
+                continue
+            entry: dict[str, Any] = json.loads(line)
+            row: _Row = (
+                tuple(form["f"] for form in entry["pl"]),
+                tuple(form["f"] for form in entry["du"]),
+                str(entry.get("g") or ""),
+            )
+            table.setdefault(_bare(entry["w"]), []).append(row)
     return table
 
 

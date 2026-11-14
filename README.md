@@ -44,9 +44,9 @@ nass.dual("سيارة")            # 'سيارتان'
 ## Plurals and duals
 
 Arabic plurals are lexical, not derivable: مدرسة → مدارس but سيارة → سيارات.
-`nass` does not guess. Every form comes from a lexicon built out of English
-Wiktionary — 9,223 lemmas, 10,860 entries — and a word that is not in it
-returns `None`.
+`nass` does not guess. Every form comes from a lexicon built out of two
+dictionaries — English Wiktionary and the arramooz morphological dictionary —
+19,080 lemmas, 20,301 entries — and a word that is not in it returns `None`.
 
 ```python
 nass.plural("كتاب")                    # 'كتب'
@@ -65,8 +65,9 @@ nass.plurals("كتاب")   # ['كتب', 'كتاتيب']
 nass.glosses("كتاب")   # ['book', "a traditional school for teaching Qur'an"]
 ```
 
-The lexicon is CC BY-SA 3.0 and ships as a separate data file; the code stays
-MIT. See `src/nass/data/LICENSE`.
+The lexicon is CC BY-SA 3.0 (Wiktionary) and GPL v2 (arramooz) and ships as two
+separate data files, merged in memory at load time; the code stays MIT. See
+`src/nass/data/LICENSE`.
 
 ## Why the plural categories matter
 

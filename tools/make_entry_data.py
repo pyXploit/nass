@@ -17,6 +17,8 @@ from __future__ import annotations
 import argparse
 import gzip
 import json
+import subprocess
+from contextlib import ExitStack
 from pathlib import Path
 from typing import Any
 
@@ -34,8 +36,11 @@ def bare(text: str) -> str:
 
 
 def load_rows() -> list[dict[str, Any]]:
-    raw = gzip.decompress(DATA.read_bytes()).decode("utf-8")
-    return [json.loads(line) for line in raw.splitlines() if line]
+    rows: list[dict[str, Any]] = []
+    for name in ("nouns.jsonl.gz", "arramooz.jsonl.gz"):
+        raw = gzip.decompress((DATA.parent / name).read_bytes()).decode("utf-8")
+        rows.extend(json.loads(line) for line in raw.splitlines() if line)
+    return rows
 
 
 def load_freq(path: Path) -> dict[str, int]:
@@ -62,7 +67,20 @@ def loose_plurals(path: Path, wanted: set[str]) -> dict[str, list[str]]:
     and make a far better prefill than an empty box.
     """
     found: dict[str, list[str]] = {}
-    with open(path, encoding="utf-8") as handle:
+    with ExitStack() as stack:
+        if str(path).endswith(".zst"):
+            proc = stack.enter_context(
+                subprocess.Popen(
+                    ["zstd", "-dc", str(path)],
+                    stdout=subprocess.PIPE,
+                    text=True,
+                    encoding="utf-8",
+                )
+            )
+            handle = proc.stdout
+        else:
+            handle = stack.enter_context(open(path, encoding="utf-8"))
+        assert handle is not None
         for line in handle:
             if not line.strip():
                 continue

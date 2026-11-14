@@ -64,12 +64,16 @@ def test_researched_gap_fills() -> None:
 
 
 def test_no_rule_made_plurals() -> None:
-    # No dictionary attests a plural for these two, so nothing is invented:
-    # they stay unknown rather than get a sound feminine plural by rule.
-    assert known("زجاجة") is True
-    assert plural("زجاجة") is None
+    # No dictionary attests a plural for ماسة, so nothing is invented: it stays
+    # unknown rather than get a sound feminine plural by rule.
     assert known("ماسة") is True
     assert plural("ماسة") is None
+
+
+def test_second_source_fills_a_gap() -> None:
+    # Wiktionary has no plural for زجاجة; arramooz does, so the gap is filled
+    # from a dictionary rather than from the sound-plural rule.
+    assert plural("زجاجة") == "زجاجات"
 
 
 def test_collectives_are_known_but_have_no_plural() -> None:

@@ -21,12 +21,14 @@ import argparse
 import gzip
 import hashlib
 import json
+import subprocess
 import sys
 from collections import Counter
 from pathlib import Path
 from typing import Any, TextIO
 
 OUT = Path(__file__).resolve().parent.parent / "src" / "nass" / "data" / "nouns.jsonl.gz"
+EXTRA_OUT = OUT.parent / "arramooz.jsonl.gz"
 
 KEEP_POS = ("noun", "adj", "name")
 DIACRITICS = frozenset(
@@ -117,6 +119,45 @@ def collect(stream: TextIO) -> tuple[list[dict[str, Any]], Counter[str]]:
     return rows, stats
 
 
+def merge_extra(
+    rows: list[dict[str, Any]], path: Path, decided: set[str]
+) -> tuple[list[dict[str, Any]], int, int]:
+    """Select the rows a second source may contribute, lemma by lemma.
+
+    The second source is only trusted where the first one is silent:
+
+    * a lemma the curated layer already decided is left alone;
+    * a lemma that is itself a plural of another word is skipped, because the
+      second source sometimes lists a plural as if it were a singular;
+    * a lemma that already has a plural keeps it, so two senses of one spelling
+      are never mixed;
+    * a lemma with no plural at all gets the second source's forms.
+
+    The selected rows are written to their own file rather than merged into the
+    first source's: the two carry different licences and must stay separate.
+    """
+    if not path.exists():
+        return [], 0, 0
+    extra = [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line]
+    primary: dict[str, dict[str, Any]] = {}
+    for row in rows:
+        primary.setdefault(bare(row["w"]), row)
+    known_plurals = {bare(form["f"]) for row in rows for form in row["pl"]}
+    kept: list[dict[str, Any]] = []
+    skipped = 0
+    for row in extra:
+        key = bare(row["w"])
+        if key in decided or key in known_plurals:
+            skipped += 1
+            continue
+        target = primary.get(key)
+        if target is not None and target["pl"]:
+            skipped += 1
+            continue
+        kept.append(row)
+    return kept, len(kept), skipped
+
+
 def apply_overrides(rows: list[dict[str, Any]], path: Path) -> int:
     """Apply hand-entered rows, replacing only the primary row of a lemma.
 
@@ -153,16 +194,36 @@ def main() -> int:
         default=str(OUT.parent / "overrides.jsonl"),
         help="hand-entered rows that win over the extracted ones",
     )
+    parser.add_argument(
+        "--extra",
+        default="",
+        help="a second source of rows, merged lemma by lemma",
+    )
     args = parser.parse_args()
 
     if args.input == "-":
         rows, stats = collect(sys.stdin)
+    elif args.input.endswith(".zst"):
+        with subprocess.Popen(
+            ["zstd", "-dc", args.input], stdout=subprocess.PIPE, text=True, encoding="utf-8"
+        ) as handle:
+            assert handle.stdout is not None
+            rows, stats = collect(handle.stdout)
     else:
         with open(args.input, encoding="utf-8") as handle:
             rows, stats = collect(handle)
 
     rows.sort(key=lambda r: (bare(r["w"]), -r["n"], r["d"]))
+    # The curated layer goes on first, so a second source can still add a form
+    # to a lemma that was marked "no plural": an attestation beats a judgement.
     applied = apply_overrides(rows, Path(args.overrides))
+    extra_rows = extra_skipped = 0
+    if args.extra:
+        decided = {bare(row["w"]) for row in rows if row.get("none") or row["pl"]}
+        kept, extra_rows, extra_skipped = merge_extra(rows, Path(args.extra), decided)
+        payload = "".join(json.dumps(r, ensure_ascii=False) + "\n" for r in kept).encode()
+        with gzip.GzipFile(EXTRA_OUT, "wb", compresslevel=9, mtime=0) as handle:
+            handle.write(payload)
     rows.sort(key=lambda r: (bare(r["w"]), -r["n"], r["d"]))
 
     payload = "".join(json.dumps(r, ensure_ascii=False) + "\n" for r in rows).encode()
@@ -176,6 +237,8 @@ def main() -> int:
     print(f"dropped form-of   {stats['dropped_form_of']:>8,}")
     print(f"rows kept         {len(rows):>8,}")
     print(f"overrides applied {applied:>8,}")
+    print(f"extra lemmas      {extra_rows:>8,}")
+    print(f"extra skipped     {extra_skipped:>8,}")
     print(f"unique lemmas     {len(lemmas):>8,}")
     print(f"with plural       {sum(1 for r in rows if r['pl']):>8,}")
     print(f"with dual         {sum(1 for r in rows if r['du']):>8,}")
