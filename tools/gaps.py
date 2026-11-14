@@ -44,9 +44,12 @@ def load_lexicon() -> dict[str, dict[str, Any]]:
             continue
         row = json.loads(line)
         key = bare(row["w"])
-        record = out.setdefault(key, {"w": key, "pl": False, "du": False, "g": ""})
+        record = out.setdefault(
+            key, {"w": key, "pl": False, "du": False, "none": False, "g": ""}
+        )
         record["pl"] = record["pl"] or bool(row["pl"])
         record["du"] = record["du"] or bool(row["du"])
+        record["none"] = record["none"] or bool(row.get("none"))
         if not record["g"] and row.get("g"):
             record["g"] = row["g"]
     return out
@@ -72,7 +75,9 @@ def main() -> int:
     lexicon = load_lexicon()
     ranks = load_freq(Path(args.freq))
 
-    missing = [r for r in lexicon.values() if not r["pl"]]
+    # A row flagged ``none`` was checked against the dictionaries and has no
+    # plural of its own, so it is not a gap any more.
+    missing = [r for r in lexicon.values() if not r["pl"] and not r["none"]]
     ranked = sorted(missing, key=lambda r: ranks.get(r["w"], 10**9))
     in_freq = [r for r in ranked if r["w"] in ranks]
     unknown = [w for w in ranks if w not in lexicon]
@@ -89,6 +94,7 @@ def main() -> int:
     print(f"lexicon lemmas        {len(lexicon):>7,}")
     print(f"  with a plural       {sum(1 for r in lexicon.values() if r['pl']):>7,}")
     print(f"  without a plural    {len(missing):>7,}")
+    print(f"  checked, no plural  {sum(1 for r in lexicon.values() if r['none']):>7,}")
     print(f"  ...of those, in the frequency list {len(in_freq):>7,}")
     print(f"frequency words not in the lexicon   {len(unknown):>7,}")
     print(f"written               {len(gaps):>7,} -> {args.out}")

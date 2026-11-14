@@ -68,8 +68,17 @@ def _bare(text: str) -> str:
 
 
 def _vocalized(text: str) -> str:
-    """Keep the vowels, drop the trailing case ending."""
-    return text.rstrip("".join(_CASE))
+    """Keep the vowels, drop the trailing case ending.
+
+    A shadda is written after the case ending, so ``بَطٌّ`` has to lose the
+    tanwin from the middle of the tail rather than from the very end.
+    """
+    stripped = text.rstrip("".join(_CASE))
+    if stripped != text:
+        return stripped
+    if text.endswith("\u0651"):
+        return text[:-1].rstrip("".join(_CASE)) + "\u0651"
+    return text
 
 
 @lru_cache(maxsize=1)

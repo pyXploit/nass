@@ -117,6 +117,9 @@ def main() -> int:
         if rank is None:
             continue
         has_plural = any(row["pl"] for row in group)
+        # A row flagged ``none`` was checked against the dictionaries and has no
+        # plural of its own, so it is not a gap any more.
+        checked_none = any(row.get("none") for row in group)
         gloss = next((row["g"] for row in group if row["g"]), "")
         if has_plural:
             verify.append(
@@ -128,7 +131,7 @@ def main() -> int:
                     "du": [bare(f["f"]) for row in group for f in row["du"]],
                 }
             )
-        else:
+        elif not checked_none:
             gaps.append({"w": lemma, "rank": rank, "g": gloss})
 
     gaps.sort(key=lambda r: r["rank"])

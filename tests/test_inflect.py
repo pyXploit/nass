@@ -46,6 +46,31 @@ def test_vocalized() -> None:
     assert plural("مدرسة", vocalized=True) == "مَدْرَسَات"
 
 
+def test_vocalized_drops_the_case_ending_before_a_shadda() -> None:
+    # بَطٌّ ends in tanwin + shadda: the tanwin goes, the shadda stays.
+    assert "بَطّ" in plurals("بطة", vocalized=True)
+    assert "بَطٌّ" not in plurals("بطة", vocalized=True)
+
+
+def test_researched_gap_fills() -> None:
+    # These lemmas had no plural in the Wiktionary extract; the forms come from
+    # the Arabic dictionaries recorded in tools/gap_fills.json.
+    assert plural("موزة") == "موزات"
+    assert plural("نحلة") == "نحلات"
+    assert plural("قش") == "قشوش"
+    assert plural("أراك") == "أرك"
+    assert plural("جبنة") == "أجبان"
+
+
+def test_collectives_are_known_but_have_no_plural() -> None:
+    # موز and بصل are collectives: the word itself covers any number, so there
+    # is no plural form to return, but the lemma is not unknown either.
+    assert known("موز") is True
+    assert plural("موز") is None
+    assert known("بصل") is True
+    assert plural("بصل") is None
+
+
 def test_unknown_returns_none_not_a_guess() -> None:
     assert plural("زززز") is None
     assert dual("زززز") is None
