@@ -189,16 +189,25 @@ break things.
 | `plural_category(n)` | CLDR category: zero, one, two, few, many, other |
 | `to_arabic_digits(text)` | `2026` → `٢٠٢٦` |
 | `to_western_digits(text)` | `٢٠٢٦` → `2026` |
+| `plural(word, vocalized=False)` | The primary plural, or `None` |
+| `plurals(word, vocalized=False)` | Every attested plural |
+| `dual(word, vocalized=False)` | The dual, or `None` |
+| `duals(word, vocalized=False)` | Every attested dual |
+| `glosses(word)` | Short English glosses, to tell homographs apart |
+| `known(word)` | Does the word have a lexicon entry? |
 | `shape(text)` | Presentation forms, logical order |
 | `display(text)` | Shaped and reordered for a left-to-right renderer |
 | `wrap(text, width, measure=...)` | Break into lines that respect Arabic punctuation |
 | `speak(text, months=...)` | Numbers, times, dates and percentages as spoken Arabic |
 | `plot.enable()` | Patch matplotlib < 3.11; no-op on newer |
 
+Full signatures, parameters and worked examples: [`docs/api.md`](docs/api.md).
+
 ## Status
 
-`0.3.0` ships normalisation, numbers, shaping, wrapping and speech. The API is
-stable; further work is bug fixes and more month-name sets.
+`0.4.0` ships normalisation, numbers, shaping, wrapping, speech and a sourced
+plural/dual lexicon (19,298 lemmas). The API is stable; further work is bug
+fixes, more month-name sets and filling the remaining plural gaps.
 
 ## Development
 
