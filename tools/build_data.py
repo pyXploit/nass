@@ -21,6 +21,7 @@ import argparse
 import gzip
 import hashlib
 import json
+import re
 import subprocess
 import sys
 from collections import Counter
@@ -42,23 +43,57 @@ def bare(text: str) -> str:
     return "".join(ch for ch in text if ch not in DIACRITICS)
 
 
-def pick(forms: list[dict[str, Any]], kind: str) -> list[dict[str, str]]:
-    """Return the citation forms (indefinite, nominative) of ``kind``."""
+def _dedupe(forms: list[dict[str, str]]) -> list[dict[str, str]]:
+    """One entry per bare spelling, keeping the diacritized variant."""
     out: list[dict[str, str]] = []
-    seen: set[str] = set()
+    index: dict[str, int] = {}
+    for form in forms:
+        key = bare(form["f"])
+        if key in index:
+            if len(form["f"]) > len(out[index[key]]["f"]):
+                out[index[key]]["f"] = form["f"]
+            continue
+        index[key] = len(out)
+        out.append(form)
+    return out
+
+
+def pick(forms: list[dict[str, Any]], kind: str) -> list[dict[str, str]]:
+    """Return the citation forms (indefinite, nominative) of ``kind``.
+
+    The strict pass keeps only forms tagged nominative and not definite or
+    construct. When an entry has no such form at all, a second pass accepts
+    untagged rows: Wiktionary frequently leaves the case off a plural row, and
+    dropping those loses the only attested plural the entry has. The fallback
+    still refuses anything marked definite, construct, accusative or genitive,
+    anything containing a space (a construct phrase), and anything carrying the
+    definite article.
+
+    The fallback never runs for an entry that already has a tagged form, so a
+    lemma that was already in the lexicon keeps exactly the plural it had.
+    """
+    strict: list[dict[str, str]] = []
+    loose: list[dict[str, str]] = []
     for form in forms:
         tags = set(form.get("tags") or ())
         if kind not in tags:
             continue
-        if tags & {"definite", "construct"} or "nominative" not in tags:
+        if tags & {"definite", "construct"}:
             continue
         text = form.get("form")
-        if not text or text in seen:
+        if not text or not ARABIC.search(text):
             continue
-        seen.add(text)
         kind_tag = "broken" if "broken-form" in tags else "sound" if "sound-form" in tags else ""
-        out.append({"f": text, "t": kind_tag})
-    return out
+        entry = {"f": text, "t": kind_tag}
+        if "nominative" in tags:
+            strict.append(entry)
+        elif (
+            not tags & {"accusative", "genitive"}
+            and " " not in text
+            and not text.startswith("\u0627\u0644")
+        ):
+            loose.append(entry)
+    return strict if strict else _dedupe(loose)
 
 
 def gloss_of(senses: list[dict[str, Any]]) -> str:
@@ -78,6 +113,9 @@ def is_form_of(senses: list[dict[str, Any]]) -> bool:
     return bool(senses) and all("form-of" in (s.get("tags") or ()) for s in senses)
 
 
+ARABIC = re.compile(r"[\u0600-\u06ff]")
+
+
 def collect(stream: TextIO) -> tuple[list[dict[str, Any]], Counter[str]]:
     stats: Counter[str] = Counter()
     rows: list[dict[str, Any]] = []
@@ -92,11 +130,31 @@ def collect(stream: TextIO) -> tuple[list[dict[str, Any]], Counter[str]]:
         stats["entries"] += 1
         if entry.get("pos") not in KEEP_POS:
             continue
-        forms = entry.get("forms") or []
-        plurals = pick(forms, "plural")
-        duals = pick(forms, "dual")
-        if not plurals and not duals:
+        word = entry.get("word") or ""
+        # Judeo-Arabic spellings are written in Hebrew script; they are not
+        # Arabic lemmas and must not enter an Arabic lexicon.
+        if not ARABIC.search(word):
+            stats["dropped_non_arabic_script"] += 1
             continue
+        forms = entry.get("forms") or []
+        raw_plurals = pick(forms, "plural")
+        raw_duals = pick(forms, "dual")
+        if (
+            not raw_plurals
+            and not raw_duals
+            # Keep the lemma when the entry does carry a plural or dual row that
+            # the filters rejected (a bare "-", a Latin transliteration, a
+            # definite form): the word is still known, it just has no usable
+            # form to return.
+            and not any({"plural", "dual"} & set(f.get("tags") or ()) for f in forms)
+        ):
+            continue
+        # A plural identical to its own singular is not a plural: Wiktionary
+        # lists lexicalised plurals (آثار, علوم) as nouns in their own right.
+        # The lemma is kept, with the circular form removed.
+        bare_word = bare(word)
+        plurals = [f for f in raw_plurals if bare(f["f"]) != bare_word]
+        duals = [f for f in raw_duals if bare(f["f"]) != bare_word]
         stats["candidates"] += 1
         senses = entry.get("senses") or []
         if is_form_of(senses):
@@ -107,7 +165,7 @@ def collect(stream: TextIO) -> tuple[list[dict[str, Any]], Counter[str]]:
             tags |= set(sense.get("tags") or ())
         rows.append(
             {
-                "w": entry["word"],
+                "w": word,
                 "pos": entry["pos"],
                 "n": len(senses),
                 "d": 1 if tags & DEMOTE else 0,
