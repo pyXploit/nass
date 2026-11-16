@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Planned
+- More month-name sets for `speak`
+- A tool for filling gaps in the plural lexicon
+
+## [0.4.1] - 2026-11-16
+
 ### Added
 - 332 lemmas that were previously invisible to the lexicon, because their only
   Wiktionary plural row carried no case tag. `pick` now falls back to untagged
@@ -16,6 +22,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   lexicon keeps exactly the plural it had
 - Lemmas whose only plural row was a bare `-` or a Latin transliteration are
   kept as known words with no plural, instead of being dropped
+- `docs/api.md` — a reference for every public function, with examples that
+  `tests/test_docs.py` runs through doctest so they cannot drift from the code
 
 ### Fixed
 - Latin transliteration rows (`hawwāʔūna`, `ḡarafātun`) were being stored as if
@@ -25,10 +33,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   lists lexicalised plurals (`آثار`, `علوم`) as nouns in their own right, so
   `plural("آثار")` returned `آثار`. It now returns `None` while `known` stays
   `True`, matching how collectives like `موز` already behaved
-
-### Planned
-- More month-name sets for `speak`
-- A tool for filling gaps in the plural lexicon
+- `README.ar.md` still described 0.2.0 and listed `speak` and `plot` as planned
+  after both had shipped
 
 ## [0.4.0] - 2026-11-13
 

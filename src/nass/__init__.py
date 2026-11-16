@@ -23,7 +23,7 @@ from nass.shape import display, shape
 from nass.speak import speak
 from nass.wrap import wrap
 
-__version__ = "0.4.0"
+__version__ = "0.4.1"
 
 __all__ = [
     "__version__",
